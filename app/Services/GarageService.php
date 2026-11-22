@@ -11,6 +11,14 @@ use Illuminate\Validation\ValidationException;
 
 class GarageService
 {
+    public function syncAvailability(string $date): void
+    {
+        $active = fn ($query) => $query->activeOn($date);
+
+        Garage::whereHas('rentals', $active)->where('status', '!=', 'used')->update(['status' => 'used']);
+        Garage::whereDoesntHave('rentals', $active)->where('status', '!=', 'available')->update(['status' => 'available']);
+    }
+
     public function createBatch(
         int $typeId,
         int $quantity,
@@ -48,13 +56,13 @@ class GarageService
 
             if ($type->last_number + $quantity > 999) {
                 throw ValidationException::withMessages([
-                    'quantity' => 'Nomor garasi untuk tipe ini melebihi 999.',
+                    'quantity' => 'Garage numbering for this type cannot exceed 999.',
                 ]);
             }
 
             if ($type->prefix === 'E' && $electricityRate === null) {
                 throw ValidationException::withMessages([
-                    'electricity_rate' => 'Tarif listrik wajib untuk garasi E.',
+                    'electricity_rate' => 'An electricity price is required for electric garages.',
                 ]);
             }
 

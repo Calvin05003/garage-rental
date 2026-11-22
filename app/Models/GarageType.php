@@ -10,6 +10,16 @@ class GarageType extends Model
 {
     protected $primaryKey = 'garage_type_id';
 
+    public function displayName(): string
+    {
+        return match ($this->prefix) {
+            'S' => 'Bicycle',
+            'C' => 'Gasoline car',
+            'E' => 'Electric car',
+            default => $this->name,
+        };
+    }
+
     protected function casts(): array
     {
         return [
